@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#171322">
+<title>🎨 Арт-рулетка</title>
+<style>
+:root{--bg:#171322;--card:#241d35;--ink:#fff8ff;--muted:#d4c8e7;--pink:#f3a6d8;--purple:#bba1ff;--line:#4b3c65}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(circle at top,#39234d 0,#171322 55%);color:var(--ink);font-family:system-ui,-apple-system,sans-serif;padding:22px 14px 36px}
+main{max-width:560px;margin:0 auto}
+header{text-align:center;padding:14px 8px 18px}
+.logo{font-size:48px}
+h1{font-size:clamp(28px,7vw,40px);margin:4px 0 8px}
+header p{color:var(--muted);margin:0}
+.card{background:rgba(36,29,53,.96);border:1px solid var(--line);border-radius:22px;padding:18px;margin:14px 0;box-shadow:0 12px 32px #0002}
+h2{font-size:18px;margin:0 0 12px}
+button{font:inherit;font-weight:700;border:0;border-radius:14px;padding:14px 12px;cursor:pointer;color:#21152d;background:linear-gradient(135deg,var(--pink),var(--purple));width:100%;margin:6px 0;min-height:48px}
+button.secondary{background:#362a4b;color:var(--ink);border:1px solid #65517e}
+button:active{transform:scale(.99)}
+.result{display:none}
+.result.show{display:block}
+.kicker{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--pink);font-weight:800}
+.result h3{font-size:25px;margin:5px 0 12px}
+.palette{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.swatch{flex:1;min-width:75px;border-radius:12px;overflow:hidden;border:1px solid #ffffff30;background:#ffffff0b}
+.color{height:58px}
+.swatch span{display:block;font-size:12px;padding:7px;text-align:center}
+.note{color:var(--muted);font-size:13px;text-align:center;line-height:1.5}
+footer{text-align:center;color:var(--muted);font-size:12px;padding-top:12px}
+</style>
+</head>
+<body>
+<main>
+<header>
+<div class="logo">🎨🌈</div>
+<h1>Арт-рулетка</h1>
+<p>Випадкова тема + палітра для твого наступного малюнка</p>
+</header>
+<section class="card">
+<h2>Що обираємо?</h2>
+<button id="both">✨ Тема + кольори</button>
+<button class="secondary" id="theme">🎲 Тільки тема</button>
+<button class="secondary" id="paletteBtn">🌈 Тільки палітра</button>
+</section>
+<section class="card result" id="result" aria-live="polite">
+<div class="kicker" id="kind">Твоє завдання</div>
+<h3 id="themeName">—</h3>
+<div id="paletteArea"></div>
+<button id="again">🔄 Нове завдання</button>
+<button class="secondary" id="copy">📋 Скопіювати завдання</button>
+</section>
+<p class="note">Можна натискати знову, доки не знайдеш натхнення ✨</p>
+<footer>Зроблено для творчих челенджів 💜</footer>
+</main>
+<script>
+const themes = [
+"Квіти","Ліс","Океан","Космос","Планети","Зоряне небо","Тварини","Коти","Птахи","Метелики","Динозаври","Дракони","Феї","Відьми","Русалки","Казковий замок","Місто майбутнього","Затишна кімната","Мода","Прикраси","Фрукти","Десерти","Пори року","Дощовий день","Захід сонця","Гори","Пляж","Сад","Гарбузи й Хелловін","Привиди","Готика","Вінтаж","Стиль 90-х","Аніме-персонаж","Власний персонаж","Супергерой","Робот","Кіберпанк","Емоції","Музика","Магія","Сни","Дружба","Українські традиції","Зимові свята","Підводне місто","Місто на хмарах","Таємничий портал","Пікнік","Кемпінг","Бібліотека","Кав'ярня","Село","Зачарований сад","Маленький світ у банці","Людина й природа","Міфологія","Корабель-привид","Кристали","Улюблена пора дня","Казкова істота в сучасному світі","Планета іншопланетян","Шкільне життя","Українська природа","Вільна тема"
+];
+const palettes = [
+{name:"Рожевий настрій",colors:[["Рожевий","#F3A6D8"],["Бузковий","#BBA1FF"],["Білий","#FFF8FF"]]},
+{name:"Нічне небо",colors:[["Темно-синій","#202A64"],["Блакитний","#78C7F2"],["Сріблястий","#DDE4F0"]]},
+{name:"Лісова казка",colors:[["Зелений","#3E7652"],["Оливковий","#A4B66B"],["Бежевий","#E6D4B5"]]},
+{name:"Теплий захід",colors:[["Помаранчевий","#F28C45"],["Жовтий","#F7D45A"],["Теракотовий","#B95742"]]},
+{name:"Готика",colors:[["Чорний","#191622"],["Бордовий","#7D1D3F"],["Сріблястий","#C8C9D3"]]},
+{name:"Океан",colors:[["Бірюзовий","#35C6C8"],["Блакитний","#8CD9F2"],["Темно-синій","#17436B"]]},
+{name:"Лаванда",colors:[["Лавандовий","#B7A1E8"],["Рожевий","#F2B8D2"],["Кремовий","#FFF0D8"]]},
+{name:"Осінь",colors:[["Гірчичний","#D6A52A"],["Коричневий","#80543D"],["Темно-зелений","#355B45"]]},
+{name:"Неон",colors:[["Неоново-рожевий","#FF3CAC"],["Неоново-синій","#2B86C5"],["Фіолетовий","#784BA0"]]},
+{name:"М'ятна мрія",colors:[["М'ятний","#A6E7D8"],["Персиковий","#FFC6A8"],["Білий","#FFFDF8"]]},
+{name:"Смарагд і золото",colors:[["Смарагдовий","#087F5B"],["Золотий","#E5B93D"],["Чорний","#202020"]]},
+{name:"Монохром",colors:[["Чорний","#202020"],["Сірий","#858585"],["Білий","#F6F6F6"]]},
+{name:"Кораловий риф",colors:[["Кораловий","#FF796C"],["Бірюзовий","#4CC9C0"],["Пісочний","#E9D2A6"]]},
+{name:"Зимова казка",colors:[["Крижаний блакитний","#B9E8F5"],["Білий","#FFFFFF"],["Синій","#4876B8"]]},
+{name:"Сливова ніч",colors:[["Сливовий","#642D63"],["Рожевий","#E99AC8"],["Сірий","#A9A6B2"]]},
+{name:"Весняний сад",colors:[["Лимонний","#F3E85B"],["М'ятний","#9BD9A3"],["Рожевий","#F4A8C7"]]},
+{name:"Вогонь",colors:[["Червоний","#D7263D"],["Помаранчевий","#F46036"],["Жовтий","#F9C80E"]]},
+{name:"Пастельна веселка",colors:[["Рожевий","#F7B7D2"],["Блакитний","#B5DDF5"],["Жовтий","#F9E7A2"]]},
+{name:"Пісок і море",colors:[["Пісочний","#D8C19A"],["Морський синій","#246A8D"],["Білий","#F7F4EA"]]},
+{name:"Винтаж",colors:[["Теракотовий","#B56B50"],["Кремовий","#E8D7B8"],["Оливковий","#7C8051"]]},
+{name:"Кіберпанк",colors:[["Чорний","#15131F"],["Фіолетовий","#9B5DE5"],["Бірюзовий","#00F5D4"]]},
+{name:"Цукеркова",colors:[["Полуничний","#F45B69"],["Бузковий","#CDB4DB"],["Ванільний","#FFF1C1"]]},
+{name:"Глибокий ліс",colors:[["Темно-зелений","#173D2B"],["Моховий","#668B58"],["Деревний","#8B6045"]]},
+{name:"Королівська",colors:[["Королівський синій","#274690"],["Золотий","#F5C451"],["Білий","#F9F7F2"]]},
+{name:"Грозове небо",colors:[["Графітовий","#41424C"],["Синьо-сірий","#687A9A"],["Блідо-жовтий","#F3E8A6"]]},
+{name:"Персиковий чай",colors:[["Персиковий","#F7B995"],["Карамельний","#C98255"],["Кремовий","#FFF0D5"]]},
+{name:"Червоний акцент",colors:[["Білий","#FFFFFF"],["Чорний","#222222"],["Червоний","#E63946"]]},
+{name:"Фіолетова галактика",colors:[["Темно-фіолетовий","#39205B"],["Бузковий","#A987E8"],["Рожевий","#F5A6D6"]]},
+{name:"Літній лимонад",colors:[["Лимонний","#F9E547"],["Лаймовий","#B8DE6F"],["Блакитний","#7EC8E3"]]},
+{name:"Нічне місто",colors:[["Темно-синій","#171C3A"],["Неоново-рожевий","#F15BB5"],["Золотистий","#FEE440"]]},
+{name:"Земляні відтінки",colors:[["Глиняний","#B66A50"],["Коричневий","#765341"],["Бежевий","#E4D1B9"]]},
+{name:"Крижана лаванда",colors:[["Блідо-блакитний","#C5E7F5"],["Лавандовий","#C7B8EA"],["Білий","#FAFAFF"]]},
+{name:"Райдужний мікс",colors:[["Червоний","#F94144"],["Жовтий","#F9C74F"],["Синій","#277DA1"]]},
+{name:"Морозна ягода",colors:[["Журавлинний","#9E2A4D"],["Рожевий","#E7A1B0"],["Сріблястий","#D9DDE5"]]},
+{name:"Затишна кава",colors:[["Кавовий","#6F4E37"],["Молочний","#DCC7AA"],["Кремовий","#F5EBDD"]]},
+{name:"Тропіки",colors:[["Яскраво-зелений","#43AA5C"],["Кораловий","#FF6B6B"],["Бірюзовий","#4ECDC4"]]},
+{name:"Чорнило й папір",colors:[["Темно-синій","#14213D"],["Сірий","#7A7F85"],["Паперовий","#F2E9E4"]]},
+{name:"Золотий світанок",colors:[["Золотий","#E9B949"],["Персиковий","#F4A896"],["Небесний","#A9D6E5"]]},
+{name:"Малина й м'ята",colors:[["Малиновий","#C9184A"],["М'ятний","#A8E6CF"],["Кремовий","#FFF1E6"]]}
+];
+const $=id=>document.getElementById(id);
+let lastTheme="",lastPalette=-1,lastMode="both",currentText="";
+function pick(arr,last){if(arr.length<2)return arr[0];let x;do{x=arr[Math.floor(Math.random()*arr.length)]}while(x===last);return x}
+function show(mode){
+ let t=mode==="palette"?null:pick(themes,lastTheme);
+ let p=mode==="theme"?null:pick(palettes,lastPalette);
+ if(t)lastTheme=t;if(p)lastPalette=palettes.indexOf(p);lastMode=mode;
+ $("result").classList.add("show");
+ $("kind").textContent=mode==="theme"?"Твоя тема":mode==="palette"?"Твоя палітра":"Твоє завдання";
+ $("themeName").textContent=t||"Палітра для твого малюнка";
+ $("paletteArea").innerHTML="";
+ if(p){
+   const title=document.createElement("p");title.textContent="🎨 "+p.name;title.style.fontWeight="800";$("paletteArea").appendChild(title);
+   const wrap=document.createElement("div");wrap.className="palette";
+   p.colors.forEach(c=>{const s=document.createElement("div");s.className="swatch";const sw=document.createElement("div");sw.className="color";sw.style.background=c[1];const label=document.createElement("span");label.textContent=c[0];s.append(sw,label);wrap.appendChild(s)});$("paletteArea").appendChild(wrap);
+ }
+ currentText=(t?"🎲 Тема: "+t+"\n":"")+(p?"🌈 Палітра: "+p.name+" — "+p.colors.map(c=>c[0]).join(", "):"");
+ $("again").textContent=mode==="theme"?"🔄 Інша тема":mode==="palette"?"🔄 Інша палітра":"🔄 Нове завдання";
+ $("result").scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+$("both").onclick=()=>show("both");$("theme").onclick=()=>show("theme");$("paletteBtn").onclick=()=>show("palette");
+$("again").onclick=()=>show(lastMode);
+$("copy").onclick=async()=>{try{await navigator.clipboard.writeText(currentText);$("copy").textContent="✅ Скопійовано!";setTimeout(()=>{$("copy").textContent="📋 Скопіювати завдання"},1600)}catch(e){alert(currentText)}};
+</script>
+</body>
+</html>
